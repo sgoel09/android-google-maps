@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -107,6 +109,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
     @Override
     public void onMapLongClick(final LatLng point) {
         Toast.makeText(this, "Long Press", Toast.LENGTH_LONG).show();
+        Log.i("MapDemoActivity", "longPress");
         showAlertDialogForPoint(point);
     }
 
@@ -118,27 +121,29 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         final AlertDialog alertDialog = alertDialogBuilder.create();
 
         alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
-            new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    // Define color of marker icon
-                    BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
-                    // Extract content from alert dialog
-                    String title = ((EditText) alertDialog.findViewById(R.id.etTitle)).getText().toString();
-                    String snippet = ((EditText) alertDialog.findViewById(R.id.etSnippet)).getText().toString();
-                    // Creates and adds marker to the map
-                    Marker marker = map.addMarker(new MarkerOptions()
-                            .position(point)
-                            .title(title)
-                            .snippet(snippet)
-                            .icon(defaultMarker));
-                }
-        });
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Define color of marker icon
+                        BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                        // Extract content from alert dialog
+                        String title = ((EditText) alertDialog.findViewById(R.id.etTitle)).getText().toString();
+                        String snippet = ((EditText) alertDialog.findViewById(R.id.etSnippet)).getText().toString();
+                        // Creates and adds marker to the map
+                        Marker marker = map.addMarker(new MarkerOptions()
+                                .position(point)
+                                .title(title)
+                                .snippet(snippet)
+                                .icon(defaultMarker));
+                    }
+                });
 
         alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }
-            });
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
 
         alertDialog.show();
     }
@@ -176,7 +181,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
 
     /*
      * Called when the Activity becomes visible.
-    */
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -184,7 +189,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
 
     /*
      * Called when the Activity is no longer visible.
-	 */
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -246,6 +251,16 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
         settingsClient.checkLocationSettings(locationSettingsRequest);
         //noinspection MissingPermission
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         getFusedLocationProviderClient(this).requestLocationUpdates(mLocationRequest, new LocationCallback() {
                     @Override
                     public void onLocationResult(LocationResult locationResult) {
